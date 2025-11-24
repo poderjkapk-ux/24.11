@@ -3369,6 +3369,10 @@ STAFF_LOGIN_HTML = """
 </body>
 </html>
 """
+# ... (предыдущие шаблоны остаются без изменений: ADMIN_HTML_TEMPLATE, ADMIN_TABLES_BODY, и т.д.)
+
+# templates.py (только STAFF_DASHBOARD_HTML, остальное оставьте как было)
+
 STAFF_DASHBOARD_HTML = """
 <!DOCTYPE html>
 <html lang="uk">
@@ -3380,172 +3384,312 @@ STAFF_DASHBOARD_HTML = """
     <meta name="theme-color" content="#333">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
-        body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; background: #f4f4f4; padding-bottom: 80px; }}
-        header {{ background: #333; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }}
-        .role-badge {{ background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 20px; font-size: 0.85em; font-weight: 500; }}
-        .container {{ padding: 15px; max-width: 600px; margin: 0 auto; }}
+        :root {{ --primary: #333; --accent: #f39c12; --bg: #f4f4f4; --white: #fff; --green: #27ae60; --red: #e74c3c; }}
+        body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; margin: 0; background: var(--bg); padding-bottom: 80px; -webkit-tap-highlight-color: transparent; }}
         
-        /* Order Card Styles */
-        .order-card {{ background: white; border-radius: 12px; padding: 0; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow: hidden; animation: slideIn 0.3s ease; }}
-        @keyframes slideIn {{ from {{ opacity: 0; transform: translateY(10px); }} to {{ opacity: 1; transform: translateY(0); }} }}
-        
-        .order-header {{ background: #f8f9fa; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; }}
-        .order-id {{ font-weight: 700; font-size: 1.1em; color: #333; }}
-        .order-time {{ color: #666; font-size: 0.9em; }}
-        
-        .order-body {{ padding: 15px; line-height: 1.5; }}
-        .order-body ul {{ margin: 0; padding-left: 20px; }}
-        .order-body li {{ margin-bottom: 5px; }}
-        
-        .order-footer {{ padding: 12px 15px; border-top: 1px solid #eee; text-align: right; }}
-        
-        .action-btn {{ background: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 0.95em; cursor: pointer; text-decoration: none; display: inline-block; }}
-        .action-btn.secondary {{ background: #6c757d; }}
-        .action-btn:active {{ transform: scale(0.98); }}
+        /* HEADER */
+        .dashboard-header {{ background: var(--white); padding: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }}
+        .user-info h3 {{ margin: 0; font-size: 1.1rem; }}
+        .role-badge {{ font-size: 0.8rem; background: #eee; padding: 2px 6px; border-radius: 4px; color: #555; }}
+        .shift-btn {{ border: none; padding: 8px 12px; border-radius: 20px; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; }}
+        .shift-btn.on {{ background: #e8f5e9; color: var(--green); border: 1px solid var(--green); }}
+        .shift-btn.off {{ background: #ffebee; color: var(--red); border: 1px solid var(--red); }}
 
-        .bottom-nav {{ position: fixed; bottom: 0; width: 100%; background: white; border-top: 1px solid #ddd; display: flex; justify-content: space-around; padding: 12px 0; z-index: 1000; padding-bottom: max(12px, env(safe-area-inset-bottom)); }}
-        .nav-item {{ text-decoration: none; color: #999; display: flex; flex-direction: column; align-items: center; font-size: 0.75em; width: 33%; }}
-        .nav-item.active {{ color: #333; font-weight: bold; }}
-        .nav-item i {{ font-size: 1.5em; margin-bottom: 4px; }}
+        /* CONTENT AREA */
+        #main-view {{ padding: 15px; }}
+        .empty-state {{ text-align: center; color: #999; margin-top: 50px; font-size: 0.9rem; }}
         
-        .notification-permission {{ background: #fff3cd; color: #856404; padding: 10px; text-align: center; font-size: 0.9em; display: none; cursor: pointer; }}
+        /* CARDS */
+        .grid-container {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }}
+        .card {{ background: var(--white); border-radius: 10px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.1s; }}
+        .card:active {{ transform: scale(0.98); }}
+        .table-card {{ text-align: center; border: 2px solid transparent; }}
+        .table-card .card-title {{ font-weight: bold; margin-bottom: 5px; font-size: 1.1rem; }}
+        
+        .order-card {{ margin-bottom: 15px; border-left: 4px solid var(--primary); background: var(--white); padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }}
+        .order-card .card-header {{ display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.9rem; color: #666; }}
+        .order-card .card-body {{ font-size: 0.95rem; line-height: 1.4; }}
+        .order-card .card-footer {{ margin-top: 15px; text-align: right; }}
+        .info-row {{ display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }}
+        
+        /* BUTTONS & BADGES */
+        .badge {{ display: inline-block; padding: 4px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }}
+        .badge.success {{ background: #e8f5e9; color: var(--green); }}
+        .badge.alert {{ background: #ffebee; color: var(--red); }}
+        
+        .action-btn {{ background: var(--primary); color: var(--white); border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 0.9rem; }}
+        .action-btn.secondary {{ background: #eee; color: #333; }}
+        
+        /* BOTTOM NAV */
+        .bottom-nav {{ position: fixed; bottom: 0; left: 0; width: 100%; background: var(--white); border-top: 1px solid #ddd; display: flex; justify-content: space-around; padding: 10px 0; z-index: 100; padding-bottom: max(10px, env(safe-area-inset-bottom)); }}
+        .nav-item {{ background: none; border: none; color: #999; display: flex; flex-direction: column; align-items: center; font-size: 0.7rem; width: 100%; cursor: pointer; }}
+        .nav-item.active {{ color: var(--primary); }}
+        .nav-item i {{ font-size: 1.4rem; margin-bottom: 4px; }}
+
+        /* MODAL */
+        .modal {{ display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; justify-content: center; align-items: flex-end; }}
+        .modal.active {{ display: flex; animation: slideUp 0.3s; }}
+        .modal-content {{ background: var(--white); width: 100%; max-height: 90vh; border-radius: 15px 15px 0 0; padding: 20px; overflow-y: auto; box-sizing: border-box; }}
+        .close {{ float: right; font-size: 24px; cursor: pointer; }}
+        @keyframes slideUp {{ from {{ transform: translateY(100%); }} to {{ transform: translateY(0); }} }}
+
+        /* CART STYLES */
+        .menu-item {{ display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; align-items: center; }}
+        .qty-ctrl {{ display: flex; align-items: center; gap: 10px; }}
+        .qty-btn {{ width: 30px; height: 30px; border-radius: 50%; border: 1px solid #ddd; background: #fff; font-weight: bold; cursor: pointer; }}
+        .cart-bar {{ display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 15px; border-top: 2px solid #eee; font-weight: bold; }}
+        .big-btn {{ width: 100%; padding: 12px; background: var(--primary); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; margin-top: 10px; cursor: pointer; }}
     </style>
 </head>
 <body>
-    <header>
-        <div style="font-weight: 700; font-size: 1.1em;">{site_title}</div>
-        <a href="/staff/logout" style="color: white; font-size: 1.2em;"><i class="fa-solid fa-right-from-bracket"></i></a>
-    </header>
-
-    <div id="notification-request" class="notification-permission" onclick="requestNotificationPermission()">
-        🔔 Натисніть тут, щоб увімкнути звукові сповіщення
-    </div>
-
-    <div class="container">
-        {content}
-    </div>
-
-    <div class="bottom-nav">
-        <a href="#" class="nav-item active"><i class="fa-solid fa-list-check"></i> Замовлення</a>
-        <a href="#" class="nav-item"><i class="fa-solid fa-clock-rotate-left"></i> Історія</a>
-        <a href="#" class="nav-item"><i class="fa-solid fa-user"></i> Профіль</a>
+    {content}
+    
+    <div id="staff-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <div id="modal-body"></div>
+        </div>
     </div>
 
     <audio id="notification-sound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
 
     <script>
-        let currentOrderIds = new Set();
-        const ordersList = document.getElementById('orders-list');
-        const loadingIndicator = document.getElementById('loading-indicator');
-        const notificationSound = document.getElementById('notification-sound');
+        // --- GLOBAL STATE ---
+        let currentView = 'orders'; // 'orders', 'tables', 'production', 'delivery'
+        let currentTableId = null;
+        let menuData = [];
+        let cart = {{}}; // {{ productId: {{ qty: 1, price: 100, name: '...' }} }}
 
-        // 1. Запит прав на сповіщення
-        function requestNotificationPermission() {{
-            if (!('Notification' in window)) return;
-            Notification.requestPermission().then(permission => {{
-                if (permission === 'granted') {{
-                    document.getElementById('notification-request').style.display = 'none';
-                }}
-            }});
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {{
+            const activeBtn = document.querySelector('.nav-item.active');
+            if (activeBtn) {{
+                const onclick = activeBtn.getAttribute('onclick');
+                const match = onclick.match(/switchTab\('(\w+)'\)/);
+                if (match) currentView = match[1];
+            }}
+            fetchData();
+            setInterval(fetchData, 8000); // Оновлення кожні 8с
+        }});
+
+        // --- NAVIGATION ---
+        function switchTab(view) {{
+            currentView = view;
+            document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            
+            document.getElementById('content-area').innerHTML = '<div id="loading-indicator" style="text-align:center;margin-top:20px;"><i class="fa-solid fa-spinner fa-spin"></i></div>';
+            fetchData();
         }}
 
-        if (Notification.permission !== 'granted' && Notification.permission !== 'denied') {{
-            document.getElementById('notification-request').style.display = 'block';
-        }}
-
-        // 2. Функція відтворення звуку
-        function playSound() {{
-            notificationSound.currentTime = 0;
-            notificationSound.play().catch(e => console.log("Audio play failed (user interaction needed first):", e));
-        }}
-
-        // 3. AJAX опитування
-        async function fetchOrders() {{
+        // --- DATA FETCHING ---
+        async function fetchData() {{
+            const errEl = document.getElementById('error-message');
             try {{
-                const response = await fetch('/staff/api/orders');
-                if (!response.ok) return;
+                const response = await fetch(`/staff/api/data?view=${{currentView}}`);
+                
+                if (!response.ok) {{
+                    throw new Error("Server error: " + response.status);
+                }}
                 
                 const data = await response.json();
-                const orders = data.orders;
+                if (data.error) throw new Error(data.error);
                 
-                loadingIndicator.style.display = 'none';
-                
-                // Перевірка на нові замовлення
-                let hasNew = false;
-                const newIds = new Set(orders.map(o => o.id));
-                
-                // Якщо це не перше завантаження і з'явився новий ID
-                if (currentOrderIds.size > 0) {{
-                    for (let id of newIds) {{
-                        if (!currentOrderIds.has(id)) {{
-                            hasNew = true;
-                            break;
-                        }}
-                    }}
-                }}
-                
-                if (hasNew) {{
-                    playSound();
-                    if (Notification.permission === 'granted') {{
-                        new Notification("Нове замовлення!", {{ body: "Перевірте список замовлень." }});
-                    }}
-                    // Вібрація для телефонів
-                    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-                }}
-                
-                currentOrderIds = newIds;
-                
-                // Рендеринг
-                if (orders.length === 0) {{
-                    ordersList.innerHTML = '<div style="text-align:center; color:#999; margin-top:50px;"><i class="fa-solid fa-mug-hot" style="font-size:3em; margin-bottom:15px;"></i><br>Замовлень немає</div>';
-                }} else {{
-                    // Простий рендеринг: повна заміна (можна оптимізувати, але для MVP ок)
-                    ordersList.innerHTML = orders.map(o => o.html).join('');
-                }}
-                
-            }} catch (error) {{
-                console.error("Error fetching orders:", error);
-            }} finally {{
-                // Гарантовано ховаємо лоадер, якщо був запит
-                if(loadingIndicator) loadingIndicator.style.display = 'none';
+                document.getElementById('content-area').innerHTML = data.html;
+                errEl.style.display = 'none';
+            }} catch (e) {{ 
+                console.error(e); 
+                document.getElementById('loading-indicator').style.display = 'none';
+                errEl.innerText = "Ошибка соединения. Проверьте интернет.";
+                errEl.style.display = 'block';
             }}
         }}
 
-        // 4. Обробка дій (наприклад, кнопка "Готово")
-        async function performAction(actionType, orderId, extra) {{
-            const btn = document.querySelector(`#order-${{orderId}} .action-btn`);
-            if(btn) {{
-                btn.disabled = true;
-                btn.innerText = '...';
+        async function toggleShift() {{
+            const btn = document.getElementById('shift-btn');
+            btn.disabled = true;
+            const res = await fetch('/staff/api/shift/toggle', {{ method: 'POST' }});
+            const data = await res.json();
+            if (data.status === 'ok') {{
+                location.reload(); 
             }}
+        }}
+
+        // --- ACTIONS ---
+        async function performAction(action, orderId, extra=null) {{
+            if(!confirm("Подтвердить действие?")) return;
             
             try {{
-                const response = await fetch(`/staff/api/action`, {{
+                const res = await fetch('/staff/api/action', {{
                     method: 'POST',
-                    headers: {{'Content-Type': 'application/json'}},
-                    body: JSON.stringify({{ action: actionType, orderId: orderId, extra: extra }})
+                    headers: {{ 'Content-Type': 'application/json' }},
+                    body: JSON.stringify({{ action, orderId, extra }})
                 }});
-                
-                if (response.ok) {{
-                    // Прибираємо картку візуально одразу
-                    const card = document.getElementById(`order-${{orderId}}`);
-                    if (card) {{
-                        card.style.opacity = '0.5';
-                        setTimeout(() => fetchOrders(), 500); // Оновлюємо список
-                    }}
+                const data = await res.json();
+                if (data.success) {{
+                    fetchData();
+                    closeModal();
                 }} else {{
-                    alert('Помилка виконання дії');
-                    if(btn) {{ btn.disabled = false; btn.innerText = 'Повторити'; }}
+                    alert("Ошибка: " + (data.error || "Unknown"));
                 }}
-            }} catch (e) {{
-                alert('Помилка мережі');
-                if(btn) {{ btn.disabled = false; btn.innerText = 'Повторити'; }}
-            }}
+            }} catch (e) {{ alert("Network error"); }}
         }}
 
-        // Запуск
-        fetchOrders(); // Одразу
-        setInterval(fetchOrders, 10000); // Кожні 10 секунд
+        // --- TABLE MODAL & ORDERS ---
+        async function openTableModal(tableId, tableName) {{
+            currentTableId = tableId;
+            cart = {{}};
+            const modal = document.getElementById('staff-modal');
+            const body = document.getElementById('modal-body');
+            
+            body.innerHTML = `
+                <h3>🪑 ${{tableName}}</h3>
+                <div id="table-orders-list">Загрузка...</div>
+                <hr>
+                <button class="big-btn" onclick="openMenuForOrder()">➕ Новый заказ</button>
+            `;
+            modal.classList.add('active');
+            loadTableOrders(tableId);
+        }}
+
+        async function loadTableOrders(tableId) {{
+            const res = await fetch(`/staff/api/table/${{tableId}}/orders`);
+            const orders = await res.json();
+            const container = document.getElementById('table-orders-list');
+            
+            if (orders.length === 0) {{
+                container.innerHTML = "<p>Активных заказов нет.</p>";
+                return;
+            }}
+            
+            let html = "";
+            orders.forEach(o => {{
+                html += `
+                <div style="background:#f9f9f9; padding:10px; margin-bottom:10px; border-radius:8px;">
+                    <div style="display:flex; justify-content:space-between;">
+                        <b>#${{o.id}}</b> <span>${{o.status}}</span>
+                    </div>
+                    <div style="font-size:0.85rem; color:#666; margin:5px 0;">${{o.items}}</div>
+                    <div style="text-align:right; font-weight:bold;">${{o.total}} грн</div>
+                    <div style="text-align:right; margin-top:5px;">
+                        <button class="action-btn secondary" onclick="openPaymentModal(${{o.id}}, ${{o.total}})">💰 Расчет</button>
+                    </div>
+                </div>`;
+            }});
+            container.innerHTML = html;
+        }}
+
+        // --- MENU & CART ---
+        async function openMenuForOrder() {{
+            const body = document.getElementById('modal-body');
+            body.innerHTML = "Загрузка меню...";
+            
+            if (menuData.length === 0) {{
+                const res = await fetch('/staff/api/menu/full');
+                menuData = await res.json();
+            }}
+            
+            renderMenu();
+        }}
+
+        function renderMenu() {{
+            const body = document.getElementById('modal-body');
+            let html = `
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3>Создать заказ</h3>
+                    <button class="action-btn secondary" onclick="openTableModal(currentTableId, '')">Назад</button>
+                </div>
+                <div style="max-height:60vh; overflow-y:auto;">`;
+            
+            menuData.forEach(cat => {{
+                html += `<h4 style="margin-bottom:5px; color:var(--primary);">${{cat.name}}</h4>`;
+                cat.products.forEach(prod => {{
+                    const qty = cart[prod.id] ? cart[prod.id].qty : 0;
+                    html += `
+                    <div class="menu-item">
+                        <div>${{prod.name}}<br><small>${{prod.price}} грн</small></div>
+                        <div class="qty-ctrl">
+                            <button class="qty-btn" onclick="updateCart(${{prod.id}}, '${{prod.name}}', ${{prod.price}}, -1)">-</button>
+                            <span>${{qty}}</span>
+                            <button class="qty-btn" onclick="updateCart(${{prod.id}}, '${{prod.name}}', ${{prod.price}}, 1)">+</button>
+                        </div>
+                    </div>`;
+                }});
+            }});
+            
+            html += `</div>
+            <div class="cart-bar">
+                <span>Итого: <span id="cart-total">0</span> грн</span>
+                <button class="action-btn" onclick="submitOrder()">✅ Отправить</button>
+            </div>`;
+            
+            body.innerHTML = html;
+            recalcCartTotal();
+        }}
+
+        function updateCart(id, name, price, delta) {{
+            if (!cart[id]) cart[id] = {{ qty: 0, price: price, name: name }};
+            cart[id].qty += delta;
+            if (cart[id].qty <= 0) delete cart[id];
+            renderMenu();
+        }}
+
+        function recalcCartTotal() {{
+            let total = 0;
+            Object.values(cart).forEach(item => total += item.qty * item.price);
+            document.getElementById('cart-total').innerText = total.toFixed(2);
+        }}
+
+        async function submitOrder() {{
+            const items = Object.entries(cart).map(([id, val]) => ({{ id: id, qty: val.qty }}));
+            if (items.length === 0) return alert("Корзина пуста");
+            
+            try {{
+                const res = await fetch('/staff/api/order/create', {{
+                    method: 'POST',
+                    headers: {{ 'Content-Type': 'application/json' }},
+                    body: JSON.stringify({{ tableId: currentTableId, cart: items }})
+                }});
+                const data = await res.json();
+                if (data.success) {{
+                    alert("Заказ создан!");
+                    openTableModal(currentTableId, ""); 
+                }} else {{
+                    alert("Ошибка: " + data.error);
+                }}
+            }} catch (e) {{ alert("Network error"); }}
+        }}
+
+        // --- PAYMENT ---
+        function openPaymentModal(orderId, total) {{
+            const body = document.getElementById('modal-body');
+            body.innerHTML = `
+                <h3>💰 Оплата заказа #${{orderId}}</h3>
+                <p style="font-size:1.2rem;">Сумма: <b>${{total}} грн</b></p>
+                <hr>
+                <p>Выберите метод:</p>
+                <button class="big-btn" onclick="performAction('pay_order', ${{orderId}}, 'cash')">💵 Наличные</button>
+                <button class="big-btn" style="background:#2980b9;" onclick="performAction('pay_order', ${{orderId}}, 'card')">💳 Карта / Терминал</button>
+            `;
+            document.getElementById('staff-modal').classList.add('active');
+        }}
+        
+        function changeStatus(orderId, statusId) {{
+             performAction('change_status', orderId, statusId);
+        }}
+
+        function closeModal() {{
+            document.getElementById('staff-modal').classList.remove('active');
+        }}
+        
+        // --- Service Worker Registration ---
+        if ('serviceWorker' in navigator) {{
+            window.addEventListener('load', () => {{
+              navigator.serviceWorker.register('/sw.js')
+                .then(registration => console.log('SW registered'))
+                .catch(err => console.log('SW registration failed', err));
+            }});
+        }}
     </script>
 </body>
 </html>

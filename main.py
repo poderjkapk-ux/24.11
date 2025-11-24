@@ -758,7 +758,8 @@ app.include_router(staff_router) # <--- ДОДАНО РОУТЕР PWA
 # --- Спеціальний роут для Service Worker ---
 @app.get("/sw.js", response_class=FileResponse)
 async def get_service_worker():
-    return FileResponse("static/sw.js", media_type="application/javascript")
+    # Читаем файл из корня, а не из static/
+    return FileResponse("sw.js", media_type="application/javascript")
 
 class DbSessionMiddleware:
     def __init__(self, session_pool): self.session_pool = session_pool
